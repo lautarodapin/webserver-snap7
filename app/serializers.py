@@ -1,7 +1,7 @@
 from typing import OrderedDict
 from rest_framework import serializers
 from .models import Dato, Fila, Plc, Area
-
+import json
 class PlcSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plc
@@ -35,4 +35,7 @@ class DatoSerializer(serializers.ModelSerializer):
     def to_representation(self, instance: Dato) -> OrderedDict:
         response = super().to_representation(instance)
         response["area"] = AreaSerializer(instance=instance.area).data
+        # response["dato"] = list(instance.dato)
         return response
+
+        # TODO javascript Uint8Array.from(atob(response.results[0].dato), c => c.charCodeAt(0))

@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.db.models import base
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from app.views import streamed, DatoViewset
+from app.views import streamed, DatoViewset, render
 
 router = DefaultRouter()
 router.register('datos', DatoViewset, basename='dato')
@@ -25,4 +25,5 @@ router.register('datos', DatoViewset, basename='dato')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('stream/', streamed),
+    path('test/', lambda r: render(r, "app/index.html"))
 ] + router.urls

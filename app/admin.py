@@ -11,7 +11,7 @@ class AreaAdmin(admin.ModelAdmin):
 
 @admin.register(Dato)
 class DatoAdmin(admin.ModelAdmin):
-    list_display = ["id", "area", "created_at"]
+    list_display = ["id", "area", "created_at", "dato"]
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):

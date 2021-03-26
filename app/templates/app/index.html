@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <main>
+    main
+    </main>
+    <footer>
+    <script>
+        function connect() {
+            var ws = new WebSocket(`ws://${window.location.host}/ws/`);
+            ws.onopen = function() {
+                // subscribe to some channels
+                ws.send(JSON.stringify({
+                    type:"ws_get_datos",
+                }));
+            };
+
+            ws.onmessage = function(e) {
+                console.log('Message:', e.data);
+            };
+
+            ws.onclose = function(e) {
+                console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+                setTimeout(function() {
+                connect();
+                }, 1000);
+            };
+
+            ws.onerror = function(err) {
+                console.error('Socket encountered error: ', err.message, 'Closing socket');
+                ws.close();
+            };
+            }
+
+            connect();
+    </script>
+    </footer>
+</body>
+</html>

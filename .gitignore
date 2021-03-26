@@ -3,6 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,django,vue,yarn,vuejs
 .vscode/
 TaskApp/
+Registro/
 ### Django ###
 *.log
 *.pot
