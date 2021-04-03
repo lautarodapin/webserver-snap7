@@ -18,11 +18,22 @@
                 // subscribe to some channels
                 ws.send(JSON.stringify({
                     type:"ws_get_datos",
+                    page: 1,
+                    page_size:1000,
                 }));
             };
 
             ws.onmessage = function(e) {
-                console.log('Message:', e.data);
+                var data = JSON.parse(e.data)
+                data.results = JSON.parse(data.results)
+                console.log('Message:', data);
+                if (data.has_next){
+                    ws.send(JSON.stringify({
+                        type:"ws_get_datos",
+                        page:data.page_number + 1,
+                        page_size:1000,
+                    }))
+                }
             };
 
             ws.onclose = function(e) {

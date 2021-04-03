@@ -1,6 +1,6 @@
 from typing import OrderedDict
 from rest_framework import serializers
-from .models import Dato, Fila, Plc, Area
+from .models import Dato, DatoProcesado, Fila, Plc, Area
 import json
 class PlcSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,3 +39,22 @@ class DatoSerializer(serializers.ModelSerializer):
         return response
 
         # TODO javascript Uint8Array.from(atob(response.results[0].dato), c => c.charCodeAt(0))
+
+
+class DatoProcesadoSerializer(serializers.ModelSerializer):
+    dato = serializers.SerializerMethodField()
+    class Meta:
+        model = DatoProcesado
+        fields = [
+            "id",
+            "name",
+            "date",
+            "dato",
+            "created_at",
+            "area",
+            "fila",
+            "raw_dato",
+        ]
+        depth = 2
+    def get_dato(self, obj:DatoProcesado):
+        return obj.value

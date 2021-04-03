@@ -1,3 +1,5 @@
+from app.models import DatoProcesado
+from django.db.models import query
 from django.shortcuts import render
 from django.http import StreamingHttpResponse
 from rest_framework import viewsets
@@ -6,7 +8,7 @@ import time
 from django.contrib.auth.models import User
 import json
 
-from .serializers import Dato, DatoSerializer
+from .serializers import Dato, DatoProcesadoSerializer, DatoSerializer
 
 '''
 class ReportCSVViewset(ListModelMixin, viewsets.GenericViewSet):
@@ -49,3 +51,14 @@ def iterate_users(sleep_interval):
 
 
         
+class DatoProcesadoViewset(viewsets.ModelViewSet):
+    queryset = DatoProcesado.objects.all()
+    serializer_class = DatoProcesadoSerializer
+    # lookup_field = "fila_id"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        filtered = self.request.GET.get("fila_id")
+        if filtered:
+            queryset = queryset.filter(fila_id=filtered)
+        return queryset

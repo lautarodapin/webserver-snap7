@@ -11,7 +11,14 @@ class AreaAdmin(admin.ModelAdmin):
 
 @admin.register(Dato)
 class DatoAdmin(admin.ModelAdmin):
-    list_display = ["id", "area", "created_at", "dato"]
+    list_display = ["id", "area", "get_created_at", "dato", "procesado",]
+    list_filter = ["procesado",]
+
+    def get_created_at(self, obj: Dato):
+        date: datetime = obj.created_at
+        return date.strftime("%d-%m-%y %H:%M:%S")
+    
+    get_created_at.short_description = "Created"
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -25,3 +32,25 @@ class FilaAdmin(admin.ModelAdmin):
     def get_value(self, obj: Fila):
         return obj.read_value(obj.area.datos.first().dato)
     get_value.short_description = "Last value"
+
+
+@admin.register(DatoProcesado)
+class DatoProcesadoAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "name",
+        "get_date",
+        "dato",
+        "area",
+        "fila",
+        "raw_dato",
+        "created_at",
+        "mod_at",
+    ]
+
+    list_filter = ["area", "fila",]
+
+    
+    def get_date(self, obj: DatoProcesado):
+        return obj.date.strftime("%d-%m-%y %H:%M:%S")
+    get_date.short_description = "Date"

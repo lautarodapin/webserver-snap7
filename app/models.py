@@ -1,10 +1,13 @@
+from .fields import MultiTypeField
+from enum import Enum
+from typing import Any, Optional, Union
 from django.db import models
 from django.http import Http404
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldDoesNotExist, ValidationError, FieldDoesNotExist, EmptyResultSet
 from django.utils.translation import gettext as _
-from django.utils.timezone import now
+from django.utils.timezone import now, datetime
 from django.utils.functional import cached_property
 import logging
 
@@ -81,12 +84,8 @@ class Area(models.Model):
     def read_from_plc(self) -> bytearray:
         plc = self.plc.client()
         return plc.read_area(self.area, self.numero, 0, self.offset)
+   
         
-    @cached_property
-    def dataframe(self):
-        datos = self.datos.all().values("created_at", "dato")
-
-
 class Fila(models.Model):
     BOOL = 'get_bool'
     REAL = 'get_real'
@@ -129,45 +128,35 @@ class Fila(models.Model):
         return getattr(s7util, self.tipo_dato)(**kwargs)
 
 
-class DatoAlmacenadoQuerySet(models.QuerySet):
-
-    @cached_property
-    def dataframe(self):
-        queryset = self
-        nombres = queryset.last().nombres # nombres de cada dato
-        if not nombres:
-            raise EmptyResultSet()
-        tabla = [dato.read_valores for dato in queryset]
-        x = [dato.created_at for dato in queryset]
-        df = pd.DataFrame(tabla, columns=nombres)
-        df['date'] = x
-        for col in df.columns: # esto convierte los True en 1 y false en 0
-            if df[col].dtype == np.dtype('bool'):
-                df[col] = df.apply(lambda x: 1 if x[col] else 0, axis=1)
-        return df
-
-class DatoAlmacenadoManager(models.Manager):
-    def get_queryset(self):
-        return DatoAlmacenadoQuerySet(self.model)
-
 class Dato(models.Model):
     class Meta:
         ordering = ["-created_at"]
     objects = models.Manager()
-    custom_manager = DatoAlmacenadoManager()
     area = models.ForeignKey(Area, verbose_name=_("Area"), on_delete=models.CASCADE, null=False, related_name="datos")
+    filas = models.ManyToManyField(Fila, related_name="datos")
     created_at = models.DateTimeField(_("Creado"), auto_now_add=True)
     mod_at = models.DateTimeField(_("Modificado"), auto_now=True)
     dato = models.BinaryField(_("Valor"), null=True, blank=True, max_length=65536, editable=True)
+    procesado = models.BooleanField(default=False)
+
+
+class DatoProcesado(models.Model):
+    class Meta:
+        ordering = ["date"]
+
+    created_at = models.DateTimeField(_("Creado"), auto_now_add=True)
+    mod_at = models.DateTimeField(_("Modificado"), auto_now=True)
+    area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name="datos_procesados")
+    fila = models.ForeignKey(Fila, on_delete=models.CASCADE, related_name="datos_procesados")
+    raw_dato = models.ForeignKey(Dato, on_delete=models.SET_NULL, null=True, related_name="datos_procesados")
+
+    name = models.CharField(max_length=100, default="")
+    date = models.DateTimeField()  # Este tiene que ser igual que el del Dato
+    dato = MultiTypeField()
+
+    def __str__(self) -> str:
+        return f"{self.name} {self.value} {self.date}"
 
     @cached_property
-    def read_valores(self):
-        valores = self.lectura.valor_db.all() # * Busco todos los valores, relacionados con la lectura (Es decir las variables del DB)
-        if valores.exists(): #
-            return [valor.read_value(db=self.dato) for valor in valores] # * Para cada variable 
-        return []
-
-    @cached_property
-    def nombres(self):
-        valores = self.lectura.valor_db.all() 
-        return [valor.name for valor in valores.all()] if valores.exists() else []  
+    def value(self):
+        return self.dato.value

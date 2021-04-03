@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://unpkg.com/vue@next"></script>
+
+</head>
+
+<body>
+    <main>
+        main
+        <div id="app">
+            <div id="myDiv">
+            </div>
+            <select v-model="fila" @change="handleFila">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+        </div>
+    </main>
+    <footer>
+        <script>
+            const app = Vue.createApp({
+                delimiters: ["[[", "]]"],
+                data() {
+                    return {
+                        ws: null,
+                        page_size:1000,
+                        fila: 1,
+                        trace: null,
+                    };
+                },
+                methods: {
+                    clearTrace(){
+                        this.trace = {
+                            x: [],
+                            y: [],
+                            type: 'scattergl',
+                        }
+                    },
+                    handleFila(){
+                        this.clearTrace();
+                        this.createChart();
+                        this.ws.send(JSON.stringify({
+                            type: "ws_get_datos_procesados",
+                            page: 1,
+                            page_size: this.page_size,
+                            fila_id: this.fila,
+                        }));
+                    },
+                    createChart() {
+                        var data = [this.trace];
+                        Plotly.newPlot('myDiv', data);
+                    },
+                    connect() {
+                        const self = this;
+                        self.ws = new WebSocket(`ws://${window.location.host}/ws/dato-procesado/`);
+                        self.ws.onopen = function () {
+                            // subscribe to some channels
+                            self.ws.send(JSON.stringify({
+                                type: "ws_get_datos_procesados",
+                                page: 1,
+                                page_size: self.page_size,
+                                fila_id: self.fila,
+                            }));
+                        };
+                        self.ws.onmessage = function (e) {
+                            var data = JSON.parse(e.data)
+                            temp = data
+                            console.log('Message:', data);
+                            if (data.has_next) {
+                                self.ws.send(JSON.stringify({
+                                    type: "ws_get_datos_procesados",
+                                    page: data.page_number + 1,
+                                    page_size: self.page_size,
+                                    fila_id: self.fila,
+                                }))
+                            }
+                            self.trace.x.push(...data.results.map(d => new Date(d.date)))
+                            self.trace.y.push(...data.results.map(d => d.dato))
+                            self.createChart()
+                        };
+                        self.ws.onclose = function (e) {
+                            console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+                            setTimeout(function () {
+                                self.connect();
+                            }, 1000);
+                        };
+                        self.ws.onerror = function (err) {
+                            console.error('Socket encountered error: ', err.message, 'Closing socket');
+                            self.ws.close();
+                        };
+                    },
+                },
+                created() {
+                    this.clearTrace();
+                    this.connect();
+                },
+
+            });
+            const mountApp = app.mount("#app")
+        </script>
+    </footer>
+</body>
+
+</html>
