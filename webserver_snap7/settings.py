@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'channels',
     'django_extensions',
     'rest_framework',
+    'django_filters',
     'app',
 ]
 
@@ -84,7 +85,9 @@ ASGI_APPLICATION = 'webserver_snap7.asgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100
+    'PAGE_SIZE': 100,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+
 }
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases

@@ -17,15 +17,15 @@ from django.contrib import admin
 from django.db.models import base
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from app.views import DatoProcesadoViewset, streamed, DatoViewset, render
+from app.views import DatoProcesadoViewset, DatoViewset, render
 
 router = DefaultRouter()
-router.register('datos', DatoViewset, basename='dato')
-router.register('datos-procesados', DatoProcesadoViewset, basename='dato-procesado')
+router.register('api/datos', DatoViewset, basename='dato')
+router.register('api/datos-procesados', DatoProcesadoViewset, basename='dato-procesado')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('stream/', streamed),
     path('test/', lambda r: render(r, "app/index.html")),
     path('test-2/', lambda r: render(r, "app/dato_procesado.html")),
+    path('graficos-rest/', lambda r: render(r, "app/graficos_rest.html")),
 ] + router.urls

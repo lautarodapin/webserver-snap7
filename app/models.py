@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, Optional, Union
 from django.db import models
 from django.http import Http404
+from django.dispatch import Signal
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldDoesNotExist, ValidationError, FieldDoesNotExist, EmptyResultSet
@@ -22,6 +23,9 @@ from snap7 import types as s7types
 from snap7 import util as s7util
 
 logger = logging.getLogger(__name__)
+
+end_fetching_data = Signal()
+
 
 class Tag(models.Model):
     nombre = models.CharField(_("Nombre"), max_length=50)
