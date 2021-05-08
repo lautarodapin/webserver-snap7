@@ -4,6 +4,45 @@ from .fields import MultiType
 from .utils import MATCH_TYPES
 import pandas as pd
 
+def get_queryset_to_fetch(ids: List[int]):
+    queryset = Area.objects\
+        .filter(pk__in=ids)\
+        .select_related("plc__ip", "plc__rack", "plc__slot", "plc__port")\
+        .values(
+            "id",
+            "plc__ip",
+            "plc__rack",
+            "plc__slot",
+            "plc__port",
+            "area",
+            "numero",
+            "offset",
+        )
+    return queryset
+
+
+def fetch_data_from_plc(ids: List[int], **kwargs):
+    queryset = get_queryset_to_fetch(ids)
+    for area in queryset.iterator(chunk_size=100):
+        client: Client = Client()
+        client.connect(
+            area.get("plc__ip"),
+            area.get("plc__rack"),
+            area.get("plc__slot"),
+            area.get("plc__port")
+        )
+        assert client.get_connected()
+        datos = client.read_area(
+            area=area.get("area"),
+            dbnumber=area.get("numero"),
+            start=0,
+            size=area.get("offset"),
+        )
+        
+        dato: Dato = Dato.objects.create(
+            area_id=area.get("id"),
+            dato=datos,
+        )
 
 def procesar_datos():
     queryset = Dato.objects\
@@ -54,6 +93,6 @@ def get_datos(array):
             return fuc(dato, int(array[4]), int(array[5]))
         return fuc(dato, int(array[4]))
         return np.nan
-        
+
 def map_datos(array):
     return list(map(get_datos, array))

@@ -166,6 +166,9 @@ class Dato(models.Model):
     dato = models.BinaryField(_("Valor"), null=True, blank=True, max_length=65536, editable=True)
     procesado = models.BooleanField(default=False)
 
+    @cached_property
+    def value(self):
+        return bytearray(self.dato)
 
 class DatoProcesado(models.Model):
     class Meta:

@@ -3,9 +3,16 @@ from typing import Tuple
 import pytest
 from app.models import *
 
+
+ip = "127.0.0.1"
+rack = 0
+slot = 0
+port = 1102
+
+
 @pytest.fixture
 def basic_models() -> Tuple[Plc, Area, Fila, Dato]:
-    plc = Plc.objects.create(ip="127.0.0.1", rack=0, slot=0, port=112, nombre="test plc")
+    plc = Plc.objects.create(ip=ip, rack=rack, slot=slot, port=port, nombre="test plc")
     area = Area.objects.create(plc=plc, area=Area.DB, nombre="area 1", numero=1, offset=10)
     fila = Fila.objects.create(area=area, name="fila 1", byte=0, bit=0, tipo_dato=Fila.BOOL)
     dato = Dato.objects.create(area=area, dato=bytearray(0b00001111))
