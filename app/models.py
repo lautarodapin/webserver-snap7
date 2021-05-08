@@ -39,12 +39,17 @@ class Tag(models.Model):
         super().save()
         
 class Plc(models.Model):
+    class Meta:
+        ordering = ["-created_at"]
+
     ip = models.GenericIPAddressField(_("IP"), unique=True)
     rack = models.PositiveSmallIntegerField(_("Rack"), blank=True)
     slot = models.PositiveSmallIntegerField(_("Slot"), blank=True)
     port = models.PositiveSmallIntegerField(_("Port"), blank=True, default=102)
     nombre = models.CharField(_("Nombre"), max_length=50, null=True, blank=True, help_text="Nombre alias")
 
+    created_at = models.DateTimeField(_("Creado"), auto_now_add=True)
+    mod_at = models.DateTimeField(_("Modificado"), auto_now=True)
     def __str__(self) -> str:
         return "%s:\t%s" % (self.nombre, self.ip)
 
@@ -55,7 +60,11 @@ class Plc(models.Model):
         
 class Area(models.Model):
     class Meta:
+        ordering = ["-created_at"]
         unique_together = ('area', 'numero', 'plc',)
+        indexes = [
+            models.Index(fields=["plc", "area"]),
+        ]
 
     PE = s7types.S7AreaPE
     PA = s7types.S7AreaPA
@@ -92,6 +101,12 @@ class Area(models.Model):
 
 
 class Fila(models.Model):
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["area"])
+        ]
+
     BOOL = 'get_bool'
     REAL = 'get_real'
     INT = 'get_int'
@@ -109,6 +124,9 @@ class Fila(models.Model):
     bit = models.PositiveSmallIntegerField(verbose_name=_("Bit"), help_text="Es requerido si el tipo de dato es `Bool`", blank=True, null=True)
     tipo_dato = models.CharField(verbose_name=_("Tipo de dato"), choices=TIPOS, default=BOOL, help_text="Tipo de dato a leer", max_length=150)
     
+    created_at = models.DateTimeField(_("Creado"), auto_now_add=True)
+    mod_at = models.DateTimeField(_("Modificado"), auto_now=True)
+
     def __str__(self):
         return "{}\t{}\ttipo={}\tbyte={}\tbit={}".format(self.name, self.area, self.get_tipo_dato_display(), self.byte, self.bit or 0)
     
@@ -136,6 +154,10 @@ class Fila(models.Model):
 class Dato(models.Model):
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["procesado", "area"])
+        ]
+        
     objects = models.Manager()
     area = models.ForeignKey(Area, verbose_name=_("Area"), on_delete=models.CASCADE, null=False, related_name="datos")
     filas = models.ManyToManyField(Fila, related_name="datos")
@@ -148,6 +170,9 @@ class Dato(models.Model):
 class DatoProcesado(models.Model):
     class Meta:
         ordering = ["date"]
+        indexes = [
+            models.Index(fields=["fila", "area"])
+        ]
 
     created_at = models.DateTimeField(_("Creado"), auto_now_add=True)
     mod_at = models.DateTimeField(_("Modificado"), auto_now=True)

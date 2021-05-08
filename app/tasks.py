@@ -47,12 +47,13 @@ def _len_check(_bytearray, index):
     return len(bytearray(_bytearray)) > index
 
 def get_datos(array):
-        function = getattr(s7util, array[6])
+        fuc = getattr(s7util, array[6])
         dato = bytearray(array[2])
 #         if _len_check(dato, array[9]):
         if array[6] == "get_bool":
-            return function(dato, int(array[4]), int(array[5]))
-        return function(dato, int(array[4]))
+            return fuc(dato, int(array[4]), int(array[5]))
+        return fuc(dato, int(array[4]))
         return np.nan
+        
 def map_datos(array):
     return list(map(get_datos, array))
