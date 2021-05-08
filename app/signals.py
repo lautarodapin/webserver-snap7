@@ -3,4 +3,5 @@ from .models import end_fetching_data
 
 
 @receiver(signal=end_fetching_data, sender="")
-def process_fetched_data(sender, instance, )
+def process_fetched_data(sender, ids, **kwargs ):
+    pass

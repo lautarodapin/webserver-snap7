@@ -1,6 +1,7 @@
 from django.db.models.query import QuerySet
+from django.dispatch.dispatcher import receiver
 from app.tasks import fetch_data_from_plc, get_queryset_to_fetch, procesar_datos
-from app.models import Area, Dato, DatoProcesado, Fila, Plc
+from app.models import Area, Dato, DatoProcesado, Fila, Plc, end_fetching_data
 from typing import List, Tuple
 import unittest
 import pytest
@@ -19,7 +20,7 @@ port = 1102
 
 
 class TestDataFetchingAndProcessing(TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         cls.process = Process(target=mainloop)
@@ -93,3 +94,14 @@ class TestDataFetchingAndProcessing(TestCase):
         assert datos_procesados[0].value == 100
         assert datos_procesados[1].value == 230
         assert datos_procesados[2].value == 25
+
+
+    def test_end_fetching_data_signal(self):
+        test = []
+        @receiver(signal=end_fetching_data)
+        def fire_process_data_after_fetching(sender, ids, **kwargs):
+            test.append((sender, ids))
+
+        fetch_data_from_plc(ids=[self.area.pk])
+
+        assert test[0] == ("fetch_data_from_plc", [self.area.pk])

@@ -1,5 +1,6 @@
 from typing import List
 from .models import *
+from .models import end_fetching_data
 from .fields import MultiType
 from .utils import MATCH_TYPES
 import pandas as pd
@@ -43,6 +44,7 @@ def fetch_data_from_plc(ids: List[int], **kwargs):
             area_id=area.get("id"),
             dato=datos,
         )
+    end_fetching_data.send(sender="fetch_data_from_plc", ids=ids)
 
 def procesar_datos():
     queryset = Dato.objects\
