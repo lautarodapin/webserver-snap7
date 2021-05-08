@@ -89,7 +89,8 @@ class Area(models.Model):
         plc = self.plc.client()
         return plc.read_area(self.area, self.numero, 0, self.offset)
    
-        
+
+
 class Fila(models.Model):
     BOOL = 'get_bool'
     REAL = 'get_real'
@@ -152,6 +153,7 @@ class DatoProcesado(models.Model):
     mod_at = models.DateTimeField(_("Modificado"), auto_now=True)
     area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name="datos_procesados")
     fila = models.ForeignKey(Fila, on_delete=models.CASCADE, related_name="datos_procesados")
+    plc = models.ForeignKey(Plc, on_delete=models.CASCADE, related_name="datos_procesados")
     raw_dato = models.ForeignKey(Dato, on_delete=models.SET_NULL, null=True, related_name="datos_procesados")
 
     name = models.CharField(max_length=100, default="")

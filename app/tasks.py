@@ -1,6 +1,7 @@
 from typing import List
 from .models import *
 from .fields import MultiType
+from .utils import MATCH_TYPES
 import pandas as pd
 
 
@@ -22,16 +23,18 @@ def procesar_datos():
             "area__offset",
             "area__id",
             "area__filas__id",
+            "area__plc",
         )
     df = pd.DataFrame(queryset)
     df["resultado"] = list(map(get_datos, df.values))
     datos_procesados : List[DatoProcesado] = []
     for i, row in df.iterrows():
         tipo_dato = row.area__filas__tipo_dato
-        tipo_dato = "bool" if tipo_dato == "get_bool" else "int" if "get_int" else "real"  # todo
+        tipo_dato = MATCH_TYPES[tipo_dato]
         dato_procesado = DatoProcesado(
             area_id=row.area__id,
             fila_id=row.area__filas__id,
+            plc_id=row.area__plc,
             name=row.area__filas__name,
             date=row.created_at,
             dato=MultiType(tipo_dato, str(row.resultado)),
