@@ -50,11 +50,11 @@ class DatoProcesadoSerializer(serializers.ModelSerializer):
             "name",
             "date",
             "dato",
-            "created_at",
             "area",
             "fila",
             "raw_dato",
         ]
-        depth = 2
+        depth = 0
+        
     def get_dato(self, obj:DatoProcesado):
         return obj.value
