@@ -1,0 +1,11 @@
+This project consist in three parts
+
+1. Fetch Data from PLC
+2. Process Data
+3. Graph datas
+
+## Fetch Data From PLC
+    ☐ 1. User must create an action for fire a Celery worker to fetch a specific data with a tag.
+    ☐ 2. After fetching, a Signal must be fired for processing data.
+
+## Process Data
