@@ -1,4 +1,3 @@
-from app.models import DatoProcesado
 from django.db.models import query
 from django.shortcuts import render
 from django.http import StreamingHttpResponse
@@ -9,7 +8,27 @@ from django.contrib.auth.models import User
 import json
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .serializers import Dato, DatoProcesadoSerializer, DatoSerializer
+from .serializers import (
+    Dato, DatoSerializer, 
+    DatoProcesado, DatoProcesadoSerializer,
+    Plc, PlcSerializer,
+    Fila, FilaSerializer,
+    Area, AreaSerializer,
+)
+
+class PlcViewset(viewsets.ModelViewSet):
+    queryset = Plc.objects.all()
+    serializer_class = PlcSerializer
+
+    
+class FilaViewset(viewsets.ModelViewSet):
+    queryset = Fila.objects.all()
+    serializer_class = FilaSerializer
+
+
+class AreaViewset(viewsets.ModelViewSet):
+    queryset = Area.objects.all()
+    serializer_class = AreaSerializer
 
 class DatoViewset(viewsets.ModelViewSet):
     queryset = Dato.objects.select_related("area",).prefetch_related("area", "area__filas")
