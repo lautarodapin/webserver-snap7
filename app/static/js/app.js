@@ -61,7 +61,8 @@ const app = Vue.createApp({
                 var trace = {
                     x: Array.from(datosFiltrados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
                     y: Array.from(datosFiltrados, dato => dato.dato),
-                    type:"scatter",
+                    type: "scatter",
+                    name: `${datosFiltrados[0].name}`,
                 }
                 if (i > 0){
                     trace.xaxis = `x${i + 1}`; 
