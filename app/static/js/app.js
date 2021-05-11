@@ -55,19 +55,32 @@ const app = Vue.createApp({
                 .filter((value, index, self) => self.indexOf(value) === index)
             console.log(filas)
             var data = []
-            for(var i=0; i < filas.length; i++){
+            for(var i = 0; i < filas.length; i++){
                 var datosFiltrados = this.datosProcesados.filter(dato => dato.fila === filas[i])
                 console.log(datosFiltrados)
-                data.push({
+                var trace = {
                     x: Array.from(datosFiltrados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
                     y: Array.from(datosFiltrados, dato => dato.dato),
                     type:"scatter",
-                })
+                }
+                if (i > 0){
+                    trace.xaxis = `x${i + 1}`; 
+                    trace.yaxis = `y${i + 1}`; 
+                }
+                data.push(trace)
+            }
+            var layout = {
+                grid: {
+                    rows: filas.length,
+                    columns: 1,
+                    pattern: 'independent',
+                }
             }
             console.log(data)
             const el = this.$refs.plotlyEl
-            Plotly.newPlot(el, data, this.layout)
+            Plotly.newPlot(el, data, layout)
             this.data = data;
+            this.layout = layout;
         },
         getDatosProcesados(url){
             return new Promise((resolve, reject) => {
