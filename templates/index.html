@@ -18,9 +18,7 @@
     <main>
         <div id="app">
             <h1>Graficos</h1>
-            {% comment %} <pre>[[plcs]]</pre> {% endcomment %}
             <div ref="plotlyEl" id="plotlyEl"></div>
-            <button @click="addPoint">+1</button>
 
             <input v-model="searchFila">
             <div v-if="filteredFilas.length > 0" v-for="(fila, index) in filteredFilas" :key="index">

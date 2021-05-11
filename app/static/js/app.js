@@ -48,15 +48,26 @@ const app = Vue.createApp({
             this.checkedFilas= [];
         },
         renderDatosProcesados(){
+            // mountApp.datosProcesados.map(dato => dato.fila).filter((value, index, self) => self.indexOf(value) === index)
             console.log(this.datosProcesados)
-            const data = [{
-                x: Array.from(this.datosProcesados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
-                y: Array.from(this.datosProcesados, dato => dato.dato),
-                type:"scatter",
-            }]
+            const filas = this.datosProcesados
+                .map(dato => dato.fila)
+                .filter((value, index, self) => self.indexOf(value) === index)
+            console.log(filas)
+            var data = []
+            for(var i=0; i < filas.length; i++){
+                var datosFiltrados = this.datosProcesados.filter(dato => dato.fila === filas[i])
+                console.log(datosFiltrados)
+                data.push({
+                    x: Array.from(datosFiltrados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
+                    y: Array.from(datosFiltrados, dato => dato.dato),
+                    type:"scatter",
+                })
+            }
             console.log(data)
             const el = this.$refs.plotlyEl
             Plotly.newPlot(el, data, this.layout)
+            this.data = data;
         },
         getDatosProcesados(url){
             return new Promise((resolve, reject) => {

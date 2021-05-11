@@ -63,4 +63,7 @@ class DatoProcesadoSerializer(serializers.ModelSerializer):
         depth = 0
         
     def get_dato(self, obj:DatoProcesado):
-        return obj.value
+        value = obj.value
+        if isinstance(value, bool):
+            return 1 if value else 0
+        return value
