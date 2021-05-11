@@ -24,10 +24,14 @@ class AreaSerializer(serializers.ModelSerializer):
         return data
 
 class FilaSerializer(serializers.ModelSerializer):
+    area = serializers.StringRelatedField(read_only=True)
+    string = serializers.SerializerMethodField()
     class Meta:
         model = Fila
-        fields = ["id", "area", "name", "byte", "bit", "tipo_dato"]
+        fields = ["id", "area", "name", "byte", "bit", "tipo_dato", "string"]
 
+    def get_string(self, obj: Fila) -> str:
+        return f"{obj.name or 'x'} {obj.byte}.{obj.bit}"
 
 class DatoSerializer(serializers.ModelSerializer):
     class Meta:

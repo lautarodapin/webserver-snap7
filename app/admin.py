@@ -27,11 +27,11 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Fila)
 class FilaAdmin(admin.ModelAdmin):
-    list_display = ["id", "area", "name", "byte", "bit", "tipo_dato", "get_value"]
+    list_display = ["id", "area", "name", "byte", "bit", "tipo_dato",]
 
-    def get_value(self, obj: Fila):
-        return obj.read_value(obj.area.datos.first().dato)
-    get_value.short_description = "Last value"
+    # def get_value(self, obj: Fila):
+    #     return obj.read_value(obj.area.datos.first().dato)
+    # get_value.short_description = "Last value"
 
 
 @admin.register(DatoProcesado)

@@ -1,8 +1,11 @@
+from typing import List
 from django.db.models import query
 from django.shortcuts import render
 from django.http import StreamingHttpResponse
 from rest_framework import viewsets
 from rest_framework.mixins import ListModelMixin
+from rest_framework.decorators import action
+from rest_framework.response import Response
 import time
 from django.contrib.auth.models import User
 import json
@@ -43,9 +46,14 @@ class DatoProcesadoViewset(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['fila__id', 'area__id', ]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        filtered = self.request.GET.get("fila_id")
-        if filtered:
-            queryset = queryset.filter(fila_id=filtered)
-        return queryset
+    @action(detail=False, methods=["get"])
+    def filter_filas(self, request):
+        filas : List[int] = map(int, request.GET.get("filas").split(","))
+        queryset = self.get_queryset().filter(fila_id__in=filas)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

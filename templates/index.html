@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -20,100 +21,19 @@
             {% comment %} <pre>[[plcs]]</pre> {% endcomment %}
             <div ref="plotlyEl" id="plotlyEl"></div>
             <button @click="addPoint">+1</button>
-            <ul v-for="(plc, index) in plcs" :key="index">
-                <li v-if="plc.areas.length != 0" v-for="(area, index) in plc.areas" :key="index">
-                    {% comment %} <pre>[[plc]]</pre> {% endcomment %}
-                    <ul>
-                        {% comment %} <pre>[[area]]</pre> {% endcomment %}
-                        <li v-if="area.filas.length != 0" v-for="(fila, index) in area.filas" :key="index">
-                            <pre>[[plc.ip]] numero: [[area.numero]] [[fila.name]]</pre>
-                        </li>
-                        <li v-else>None</li>
-                    </ul>
-                </li>
-                <li v-else>None</li>
-            </ul>
+
+            <input v-model="searchFila">
+            <div v-if="filteredFilas.length > 0" v-for="(fila, index) in filteredFilas" :key="index">
+                <input type="checkbox" :value="fila.id" v-model="checkedFilas">
+                [[fila.string]] [[fila.area]]
+            </div>
+            [[checkedFilas]]
+            <button @click="fetchData" :disabled="checkedFilas.length > 0?false:true">Search!</button>
+            [[datosProcesados]]
         </div>
     </main>
     <footer>
-        <script>
-            const instance = axios.create({
-                baseURL: `${window.location.protocol}//${window.location.host}/api/`,
-                timeout: 1000,
-            }); 
-            const app = Vue.createApp({
-                delimiters: ["[[", "]]"],
-                data(){
-                    return{
-                        plcs: [],
-                        areas: [],
-                        filas: [],
-                        data:[{
-                            x: [1,2,3,4],
-                            y: [10,15,13,17],
-                            type:"scattergl"
-                        }],
-                        layout:{
-                            title: "My graph",
-                        }
-                    }
-                },
-                computed:{},
-                methods:{
-                    getPlcs(){
-                        return new Promise((resolve, reject) => {
-                            instance.get("plcs/")
-                            .then(response => {
-                                this.plcs = response.data.results
-                                resolve(response)
-                            })
-                            .catch(error => {
-                                reject(error.response)
-                            })
-                        })
-                    },
-                    getAreas(){
-                        return new Promise((resolve, reject) => {
-                            instance.get("areas/")
-                            .then(response => {
-                                this.areas = response.data.results
-                                resolve(response)
-                            })
-                            .catch(error => {
-                                reject(error.response)
-                            })
-                        })
-                    },
-                    getFilas(){
-                        return new Promise((resolve, reject) => {
-                            instance.get("filas/")
-                            .then(response => {
-                                this.filas = response.data.results
-                                resolve(response)
-                            })
-                            .catch(error => {
-                                reject(error.response)
-                            })
-                        })
-                    },
-                    addPoint(){
-                        this.data[0].x.push(Math.random()); 
-                        this.data[0].y.push(Math.random()); 
-                        Plotly.redraw(this.$refs.plotlyEl)
-                    }
-                },
-                created(){
-                    Promise.all([
-                        this.getPlcs(),
-                    ])
-                },
-                mounted(){
-                    const el = this.$refs.plotlyEl
-                    return Plotly.newPlot(el, this.data, this.layout)
-                }
-            });
-            const mountApp = app.mount("#app")
-        </script>
+        <script src="{% static 'js/app.js' %}"></script>
     </footer>
 </body>
 

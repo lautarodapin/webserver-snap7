@@ -50,8 +50,9 @@ class Plc(models.Model):
 
     created_at = models.DateTimeField(_("Creado"), auto_now_add=True)
     mod_at = models.DateTimeField(_("Modificado"), auto_now=True)
+
     def __str__(self) -> str:
-        return "%s:\t%s" % (self.nombre, self.ip)
+        return f"{self.nombre or 'x'}: {self.ip}"
 
     def client(self) -> Client:
         plc: Client = Client()
