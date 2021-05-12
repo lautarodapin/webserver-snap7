@@ -120,7 +120,7 @@ const app = Vue.createApp({
         },
         getFilas(){
             return new Promise((resolve, reject) => {
-                instance.get("filas/")
+                instance.get("filas/?limit=100")
                 .then(response => {
                     this.filas = response.data.results
                     resolve(response)
