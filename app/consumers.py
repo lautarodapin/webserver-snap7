@@ -1,3 +1,4 @@
+from django.db.models.query import QuerySet
 from app.models import DatoProcesado
 from collections import OrderedDict
 import json
@@ -126,3 +127,11 @@ class DatoProcesadoConsumer(StreamedPaginatedListMixin, GenericAsyncAPIConsumer)
     queryset = DatoProcesado.objects.all()
     pagination_class = WebsocketLimitOffsetPagination
     serializer_class = DatoProcesadoSerializer
+
+
+    def get_queryset(self, **kwargs) -> QuerySet:
+        queryset = super().get_queryset(**kwargs)
+        filters = kwargs.pop("filters")
+        if filters:
+            return queryset.filter(**filters)
+        return queryset

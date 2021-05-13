@@ -41,6 +41,9 @@ const app = Vue.createApp({
                 action: "list",
                 request_id: new Date().getTime(),
                 limit: 10,
+                filters:{
+                    "fila_id__in": this.checkedFilas,
+                },
             }))
         },
         renderDatosProcesados(){
