@@ -119,62 +119,10 @@ def map_datos(array):
     return list(map(get_datos, array))
 
 
-
-class DatoProcesadoConsumer(AsyncWebsocketConsumer):
-    
-    async def connect(self):
-        # self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = 'datos_procesados'
-
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-
-    async def receive(self, text_data):
-        print(text_data)
-        data: Dict = json.loads(text_data)
-        method = data.get("type")
-        if method:
-            return await self.channel_layer.group_send(
-                self.room_group_name,
-                dict(
-                    type=method,
-                    page_number=data.get("page_number", 1),
-                    page_size=data.get("page_size", 1),
-                    fila_id=data.get("fila_id", 1)
-                )
-            )
-
-    async def ws_get_datos_procesados(self, event):
-        page_number = event.get("page_number", 1)
-        page_size = event.get("page_size", 1)
-        fila_id = event.get("fila_id", 1)
-        datos = await self.get_datos_procesados(page_size=page_size, page_number=page_number, fila_id=fila_id)
-        await self.send(text_data=json.dumps(datos))
-
-
-    @database_sync_to_async
-    def get_datos_procesados(self, page_number, page_size, fila_id):
-        queryset = DatoProcesado.objects.filter(fila_id=fila_id)
-        paginator = Paginator(queryset, page_size)
-
-        page_obj = paginator.get_page(page_number)
-        serializer = DatoProcesadoSerializer(instance=page_obj.object_list, many=True)
-        data = OrderedDict([
-            ('count', paginator.count),
-            ('has_next', page_obj.has_next()),
-            ('has_previous', page_obj.has_previous()),
-            ('has_next', page_obj.has_next()),
-            ('num_pages', paginator.num_pages),
-            ('results', serializer.data),
-            ('page_number', page_number),
-        ])
-        return data
+from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
+from .mixins import StreamedPaginatedListMixin
+from .paginator import WebsocketLimitOffsetPagination
+class DatoProcesadoConsumer(StreamedPaginatedListMixin, GenericAsyncAPIConsumer):
+    queryset = DatoProcesado.objects.all()
+    pagination_class = WebsocketLimitOffsetPagination
+    serializer_class = DatoProcesadoSerializer

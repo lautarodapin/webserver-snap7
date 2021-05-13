@@ -80,6 +80,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'webserver_snap7.wsgi.application'
 ASGI_APPLICATION = 'webserver_snap7.asgi.application'
 
