@@ -27,7 +27,8 @@
             </div>
             [[checkedFilas]]
             <button @click="fetchData" :disabled="checkedFilas.length > 0?false:true">Search!</button>
-            [[datosProcesados]]
+            {% comment %} <div v-for="dato in datosProcesados" :key="dato.id">[[dato.id]]</div> {% endcomment %}
+            <div v-if="loading">[[progress]]</div>
         </div>
     </main>
     <footer>

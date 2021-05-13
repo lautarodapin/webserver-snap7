@@ -57,3 +57,21 @@ class DatoProcesadoViewset(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    
+    @action(detail=False, methods=["get"])
+    def streamed_filter_filas(self, request):
+        filas : List[int] = map(int, request.GET.get("filas").split(","))
+        queryset = self.get_queryset().filter(fila_id__in=filas)
+        response = StreamingHttpResponse(
+            self._streamed_filter_filas(queryset),
+            status=200,
+            content_type="application/json"
+        )
+        return response
+
+    def _streamed_filter_filas(self, queryset):
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            yield self.get_paginated_response(serializer.data)

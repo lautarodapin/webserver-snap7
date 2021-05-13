@@ -1,11 +1,13 @@
 const instance = axios.create({
     baseURL: `${window.location.protocol}//${window.location.host}/api/`,
-    timeout: 1000,
+    timeout: 10000,
 }); 
 const app = Vue.createApp({
     delimiters: ["[[", "]]"],
     data(){
         return{
+            loading: false,
+            progress: 0,
             searchFila: "",
             checkedFilas: [],
             plcs: [],
@@ -33,31 +35,55 @@ const app = Vue.createApp({
     },
     methods:{
         async fetchData(e, url){
+            var limit = 50000
+            this.loading = true
             if (this.datosProcesados.length > 0) this.datosProcesados = [];
-            if (!url) url = `datos-procesados/filter_filas/?filas=${this.checkedFilas.join(",")}`;
+            if (!url) url = `datos-procesados/filter_filas/?filas=${this.checkedFilas.join(",")}&limit=${limit}&offset=0`;
             var response = await this.getDatosProcesados(url)
             console.log(response)
             this.datosProcesados.push(...response.data.results)
+            var count = response.count;
+            var hits_to_endpoint = count / limit
+            var progress = 1 / hits_to_endpoint
             while (response.data.next != null) {
                 url = response.data.next;
-                response = await this.getDatosProcesados(url);
-                console.log(response)
-                this.datosProcesados.push(...response.data.results)
+                try {
+                    response = await this.getDatosProcesados(url);
+                    console.log(response)
+                    this.datosProcesados.push(...response.data.results)
+                    progress += 1 / hits_to_endpoint
+                    this.progress = progress * 100
+                } catch (error) {
+                    console.log("Error", error.response)
+                    break;
+                }
             }
             this.renderDatosProcesados();
             this.checkedFilas= [];
+            this.loading = false
+        },
+        getDatosProcesados(url){
+            return new Promise((resolve, reject) => {
+                instance.get(url)
+                .then(response => {
+                    resolve(response)
+                })
+                .catch(error =>     {
+                    reject(error)
+                })
+            })
         },
         renderDatosProcesados(){
             // mountApp.datosProcesados.map(dato => dato.fila).filter((value, index, self) => self.indexOf(value) === index)
-            console.log(this.datosProcesados)
+            // console.log(this.datosProcesados)
             const filas = this.datosProcesados
                 .map(dato => dato.fila)
                 .filter((value, index, self) => self.indexOf(value) === index)
-            console.log(filas)
+            // console.log(filas)
             var data = []
             for(var i = 0; i < filas.length; i++){
                 var datosFiltrados = this.datosProcesados.filter(dato => dato.fila === filas[i])
-                console.log(datosFiltrados)
+                // console.log(datosFiltrados)
                 var trace = {
                     x: Array.from(datosFiltrados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
                     y: Array.from(datosFiltrados, dato => dato.dato),
@@ -77,22 +103,11 @@ const app = Vue.createApp({
                     pattern: 'independent',
                 }
             }
-            console.log(data)
+            // console.log(data)
             const el = this.$refs.plotlyEl
             Plotly.newPlot(el, data, layout)
             this.data = data;
             this.layout = layout;
-        },
-        getDatosProcesados(url){
-            return new Promise((resolve, reject) => {
-                instance.get(url)
-                .then(response => {
-                    resolve(response)
-                })
-                .catch(error =>     {
-                    reject(error)
-                })
-            })
         },
         getPlcs(){
             return new Promise((resolve, reject) => {
