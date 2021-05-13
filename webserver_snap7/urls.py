@@ -23,6 +23,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include("app.urls")),
     path("", lambda r: render(r, "index.html")),
+    path("ws", lambda r: render(r, "index_ws.html")),
+
+
     path('test/', lambda r: render(r, "app/index.html")),
     path('test-2/', lambda r: render(r, "app/dato_procesado.html")),
     path('graficos-rest/', lambda r: render(r, "app/graficos_rest.html")),

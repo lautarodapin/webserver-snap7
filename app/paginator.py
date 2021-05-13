@@ -20,7 +20,7 @@ def _positive_int(integer_string, strict=False, cutoff=None):
 
 class WebsocketLimitOffsetPagination(LimitOffsetPagination):
 
-    default_limit = 100
+    default_limit = 2
     count: int
     limit: int
     offset: int

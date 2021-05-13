@@ -6,7 +6,7 @@ from rest_framework.utils.serializer_helpers import ReturnDict, ReturnList
 
 from djangochannelsrestframework.mixins import ListModelMixin
 from djangochannelsrestframework.decorators import action
-
+from rest_framework import status as rest_status
 class PaginatedModelListMixin(ListModelMixin):
 
     pagination_class = None
@@ -68,7 +68,9 @@ class StreamedPaginatedListMixin(PaginatedModelListMixin):
         limit = data.get("limit", 0)
         offset = data.get("offset", 0)
 
-        if offset < count:
+        if offset < (count - limit):
             kwargs["offset"] = limit + offset
 
             await self.list(action=action, request_id=request_id, **kwargs)
+        # if offset >= (count - limit):
+        #     await self.reply(action=action, data=dict(end=True), status=rest_status.HTTP_204_NO_CONTENT, request_id=request_id)
