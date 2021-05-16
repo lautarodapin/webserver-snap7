@@ -45,10 +45,11 @@ const app = Vue.createApp({
     methods:{
         async fetchData(){
             await this.clearDatos();
+            this.loading = true;
             this.ws.send(JSON.stringify({
                 action: "list",
                 request_id: new Date().getTime(),
-                limit: 10,
+                limit: 5000,
                 filters:{
                     "fila_id__in": this.checkedFilas,
                 },
@@ -119,8 +120,10 @@ const app = Vue.createApp({
                 // }
                 await self.saveDatos(response.data.results)
                 let datos = await self.getDatos();
-                if (response.data.offset + response.data.results.length == response.data.count) 
+                if (response.data.offset + response.data.results.length == response.data.count) {
+                    self.loading = false;
                     return self.renderDatosProcesados();
+                }
                 // console.log(datos)
                 // self.datosProcesados.push(...response.data.results)
             }

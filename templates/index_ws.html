@@ -10,6 +10,7 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://unpkg.com/vue@next"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsstore/dist/jsstore.min.js"></script>
     {% comment %} <script src="https://cdn.jsdelivr.net/npm/@statnett/vue-plotly@0.3.2/dist/vue-plotly.min.js"></script> {% endcomment %}
     {% comment %} <script src="https://unpkg.com/vue-plotly"></script> {% endcomment %}
 </head>
@@ -26,7 +27,7 @@
                 [[fila.string]] [[fila.area]]
             </div>
             [[checkedFilas]]
-            <button @click="fetchData" :disabled="checkedFilas.length > 0?false:true">Search!</button>
+            <button @click="fetchData" :disabled="loading">Search!</button>
             {% comment %} <div v-for="dato in datosProcesados" :key="dato.id">[[dato.id]]</div> {% endcomment %}
             <div v-if="loading">[[progress]]</div>
         </div>
