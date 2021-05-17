@@ -27,9 +27,12 @@
                 [[fila.string]] [[fila.area]]
             </div>
             [[checkedFilas]]
-            <button @click="fetchData" :disabled="loading">Search!</button>
+            <button @click="fetchData" :disabled="loading">
+                Search!
+                <span v-if="loading">[[progress]]</span>
+            </button>
             {% comment %} <div v-for="dato in datosProcesados" :key="dato.id">[[dato.id]]</div> {% endcomment %}
-            <div v-if="loading">[[progress]]</div>
+            
         </div>
     </main>
     <footer>

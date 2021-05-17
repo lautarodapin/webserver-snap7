@@ -21,8 +21,8 @@ const app = Vue.createApp({
             filas: [],
             // datosProcesados: [],
             data:[{
-                x: [1,2,3,4],
-                y: [10,15,13,17],
+                x: [],
+                y: [],
                 type:"scattergl"
             }],
             layout:{
@@ -44,12 +44,14 @@ const app = Vue.createApp({
     },
     methods:{
         async fetchData(){
-            await this.clearDatos();
+            // await this.clearDatos();
+            this.data[0].x = []
+            this.data[0].y = []
             this.loading = true;
             this.ws.send(JSON.stringify({
                 action: "list",
                 request_id: new Date().getTime(),
-                limit: 5000,
+                limit: 10000,
                 filters:{
                     "fila_id__in": this.checkedFilas,
                 },
@@ -59,39 +61,39 @@ const app = Vue.createApp({
             // mountApp.datosProcesados.map(dato => dato.fila).filter((value, index, self) => self.indexOf(value) === index)
             // console.log(this.datosProcesados)
             // this.datosProcesados = JSON.parse(localStorage.getItem("datosProcesados"))
-            datosProcesados = await this.datosProcesados
-            const filas = datosProcesados
-                .map(dato => dato.fila)
-                .filter((value, index, self) => self.indexOf(value) === index)
-            // console.log(filas)
-            var data = []
-            for(var i = 0; i < filas.length; i++){
-                var datosFiltrados = datosProcesados.filter(dato => dato.fila === filas[i])
-                // console.log(datosFiltrados)
-                var trace = {
-                    x: Array.from(datosFiltrados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
-                    y: Array.from(datosFiltrados, dato => dato.dato),
-                    type: "scatter",
-                    name: `${datosFiltrados[0].name}`,
-                }
-                if (i > 0){
-                    trace.xaxis = `x${i + 1}`; 
-                    trace.yaxis = `y${i + 1}`; 
-                }
-                data.push(trace)
-            }
-            var layout = {
-                grid: {
-                    rows: filas.length,
-                    columns: 1,
-                    pattern: 'independent',
-                }
-            }
-            // console.log(data)
+            // datosProcesados = await this.datosProcesados
+            // const filas = datosProcesados
+            //     .map(dato => dato.fila)
+            //     .filter((value, index, self) => self.indexOf(value) === index)
+            // // console.log(filas)
+            // var data = []
+            // for(var i = 0; i < filas.length; i++){
+            //     var datosFiltrados = datosProcesados.filter(dato => dato.fila === filas[i])
+            //     // console.log(datosFiltrados)
+            //     var trace = {
+            //         x: Array.from(datosFiltrados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
+            //         y: Array.from(datosFiltrados, dato => dato.dato),
+            //         type: "scatter",
+            //         name: `${datosFiltrados[0].name}`,
+            //     }
+            //     if (i > 0){
+            //         trace.xaxis = `x${i + 1}`; 
+            //         trace.yaxis = `y${i + 1}`; 
+            //     }
+            //     data.push(trace)
+            // }
+            // var layout = {
+            //     grid: {
+            //         rows: filas.length,
+            //         columns: 1,
+            //         pattern: 'independent',
+            //     }
+            // }
+            // // console.log(data)
             const el = this.$refs.plotlyEl
-            Plotly.newPlot(el, data, layout)
-            this.data = data;
-            this.layout = layout;
+            Plotly.newPlot(el, this.data, this.layout)
+            // this.data = data;
+            // this.layout = layout;
         },
         getFilas(){
             return new Promise((resolve, reject) => {
@@ -118,12 +120,16 @@ const app = Vue.createApp({
                 //     const datos = response.data.results[i]
                 //     let data = await self.saveDato(datos)
                 // }
-                await self.saveDatos(response.data.results)
-                let datos = await self.getDatos();
-                if (response.data.offset + response.data.results.length == response.data.count) {
+                // await self.saveDatos(response.data.results)
+                // let datos = await self.getDatos();
+                self.data[0].x.push(...response.data.results.x)
+                self.data[0].y.push(...response.data.results.y)
+                var progress = response.data.offset + response.data.results.x.length;
+                if (progress == response.data.count) {
                     self.loading = false;
                     return self.renderDatosProcesados();
                 }
+                self.progress = progress / response.data.count * 100
                 // console.log(datos)
                 // self.datosProcesados.push(...response.data.results)
             }

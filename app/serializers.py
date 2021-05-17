@@ -67,3 +67,12 @@ class DatoProcesadoSerializer(serializers.ModelSerializer):
         if isinstance(value, bool):
             return 1 if value else 0
         return value
+
+
+
+class ChartDataSerializer(serializers.Serializer):
+
+    x = serializers.ListSerializer(child=serializers.DateTimeField())
+    y = serializers.ListSerializer(child=serializers.IntegerField())
+    mode = serializers.CharField(max_length=50)
+    type = serializers.CharField(max_length=50)

@@ -1,8 +1,10 @@
 from django.db.models.query import QuerySet
+from djangochannelsrestframework.decorators import action
+from rest_framework.serializers import Serializer
 from app.models import DatoProcesado
 from collections import OrderedDict
 import json
-from typing import Dict
+from typing import Dict, List
 from channels.generic.websocket import AsyncWebsocketConsumer, async_to_sync
 from channels.db import database_sync_to_async
 from django.core.paginator import Paginator
@@ -11,7 +13,7 @@ from django.db.models import Prefetch, F
 
 import snap7.util as s7util
 
-from .serializers import (DatoProcesadoSerializer, DatoSerializer, Dato)
+from .serializers import (ChartDataSerializer, DatoProcesadoSerializer, DatoSerializer, Dato)
 
 class DatosConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -121,17 +123,41 @@ def map_datos(array):
 
 
 from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
+from djangochannelsrestframework.decorators import action
 from .mixins import StreamedPaginatedListMixin
 from .paginator import WebsocketLimitOffsetPagination
 class DatoProcesadoConsumer(StreamedPaginatedListMixin, GenericAsyncAPIConsumer):
     queryset = DatoProcesado.objects.all()
     pagination_class = WebsocketLimitOffsetPagination
-    serializer_class = DatoProcesadoSerializer
+    serializer_class = ChartDataSerializer
 
 
     def get_queryset(self, **kwargs) -> QuerySet:
         queryset = super().get_queryset(**kwargs)
-        filters = kwargs.pop("filters")
+        filters = kwargs.pop("filters", None)
         if filters:
-            return queryset.filter(**filters)
-        return queryset
+            return queryset.filter(**filters)\
+                .values_list("dato", "date")
+        return queryset\
+                .values_list("dato", "date")
+        
+        
+    def get_serializer(self, action_kwargs: Dict = None, *args, **kwargs) -> Serializer:
+        """
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        serializer_class = self.get_serializer_class(**action_kwargs)
+
+        kwargs["context"] = self.get_serializer_context(**action_kwargs)
+
+        instance: List[DatoProcesado] = kwargs["instance"]
+
+        datos = {
+            "x":map(lambda dato: dato[1], instance),
+            "y":map(lambda dato: dato[0].value, instance),
+            "mode":"markers",
+            "type":"scatter",
+        }
+
+        return serializer_class(instance=datos)
