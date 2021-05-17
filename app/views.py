@@ -9,7 +9,7 @@ from rest_framework.response import Response
 import time
 from django.contrib.auth.models import User
 import json
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, filters, FilterSet
 
 from .serializers import (
     ChartDatoProcesadoSerializer, Dato, DatoSerializer, 
@@ -41,10 +41,10 @@ class DatoViewset(viewsets.ModelViewSet):
         
 class DatoProcesadoViewset(viewsets.ModelViewSet):
     queryset = DatoProcesado.objects.all()
-    serializer_class = DatoProcesadoSerializer
+    serializer_class = DatoProcesadoSerializer  
     # lookup_field = "fila_id"
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['fila__id', 'area__id', ]
+    filter_backends = [DjangoFilterBackend,]
+    filterset_fields = ['fila__id', 'area__id', "date"]
 
     @action(detail=False, methods=["get"])
     def filter_filas(self, request):
@@ -61,11 +61,13 @@ class DatoProcesadoViewset(viewsets.ModelViewSet):
     
     @action(detail=False, methods=["get"])
     def datos_procesados(self, request):
-        filas : List[int] = map(int, request.GET.get("filas").split(","))
-        queryset = self.get_queryset()\
-            .filter(fila_id__in=filas)\
-            .values("dato", "date", "fila", "name")\
-            .order_by("fila")
+        queryset = self.get_queryset()
+        if request.GET.get("filas", None):
+            filas : List[int] = map(int, request.GET.get("filas").split(","))
+            queryset = queryset\
+                .filter(fila_id__in=filas)\
+                .values("dato", "date", "fila", "name")\
+                .order_by("fila")
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ChartDatoProcesadoSerializer(page, many=True)

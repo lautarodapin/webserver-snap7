@@ -2,8 +2,26 @@ const instance = axios.create({
     baseURL: `${window.location.protocol}//${window.location.host}/api/`,
     timeout: 10000,
 }); 
+
+const PlotlyComponent =  {
+    name: "plotly-component",
+    template: `
+    <div>
+        <h1>Test</h1>
+        {{data}}
+        <div ref="plot1"></div>
+    </div>
+    `,
+    props: ["data",],
+    mounted() {
+        console.log(this.data)
+        Plotly.newPlot(this.$refs.plot1, this.data);
+    }
+}
+
 const app = Vue.createApp({
     delimiters: ["[[", "]]"],
+    components: {PlotlyComponent, },
     data(){
         return{
             loading: false,
@@ -14,11 +32,6 @@ const app = Vue.createApp({
             areas: [],
             filas: [],
             datosProcesados: [],
-            data:[{
-                x: [1,2,3,4],
-                y: [10,15,13,17],
-                type:"scattergl"
-            }],
             layout:{
                 title: "My graph",
             }

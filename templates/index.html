@@ -7,9 +7,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://unpkg.com/vue@next"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
     {% comment %} <script src="https://cdn.jsdelivr.net/npm/@statnett/vue-plotly@0.3.2/dist/vue-plotly.min.js"></script> {% endcomment %}
     {% comment %} <script src="https://unpkg.com/vue-plotly"></script> {% endcomment %}
 </head>
@@ -31,6 +33,7 @@
             </button>
             {% comment %} <div v-for="dato in datosProcesados" :key="dato.id">[[dato.id]]</div> {% endcomment %}
             <div ref="plotlyEl" id="plotlyEl"></div>
+            <plotly-component :data="[{x: [1,2,3], y:[1,2,3], type:'scatter'}]" />
 
         </div>
     </main>

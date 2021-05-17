@@ -25,7 +25,7 @@ SECRET_KEY = '7df^da=*t$2u&qs7#zs1(&piy^ps9kpy)q#l$*6i+cbot1&i$b'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 import os
 # Application definition
