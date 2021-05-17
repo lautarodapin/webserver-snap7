@@ -32,10 +32,10 @@
                 <span v-if="loading">[[progress]]</span>
             </button>
             <plotly-component 
-                v-if="datos.length > 0"
-                v-for="(dato, index) in datos" 
+                v-if="fetchFilas.length > 0"
+                v-for="(fila, index) in fetchFilas" 
                 :key="index" 
-                :dato="dato" 
+                :fila="fila" 
             />
         </div>
     </main>

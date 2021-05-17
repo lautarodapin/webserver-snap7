@@ -9,55 +9,133 @@ const PlotlyComponent =  {
     <div>
         <h1>{{name || 'Test'}}</h1>
         {{fila}}
+        {{loading}}
+        <span v-if="loading">
+            {{progress}}
+        </span>
         <div ref="plot"></div>
+        <button v-if="error" @click="reload">Reload</button>
     </div>
     `,
-    props: ["dato",],
+    props: ["fila",],
+    data(){return {
+        loading: false,
+        datos: [],
+        name: null,
+        progress: 0,
+        error: false,
+        errorMessage: null,
+    }},
     computed:{
-        name() {return this.dato?.data.name;},
-        fila() {return this.dato?.fila;},
-        data() {return this.dato?.data;},
+    },
+    methods:{
+        reload(){
+            this.error = false;
+            this.errorMessage = null;
+            this.fetchData();
+        },
+        plot(){
+            console.log(this.data)
+            const data = [this.data]
+            Plotly.newPlot(this.$refs.plot, [this.data], layout);
+        },
+        renderPlot(){
+            var selectorOptions = {
+                buttons: [{
+                    step: 'month',
+                    stepmode: 'backward',
+                    count: 1,
+                    label: '1m'
+                }, {
+                    step: 'month',
+                    stepmode: 'backward',
+                    count: 6,
+                    label: '6m'
+                }, {
+                    step: 'year',
+                    stepmode: 'todate',
+                    count: 1,
+                    label: 'YTD'
+                }, {
+                    step: 'year',
+                    stepmode: 'backward',
+                    count: 1,
+                    label: '1y'
+                }, {
+                    step: 'all',
+                }],
+            };
+            var layout = {
+                title: this.name,
+                xaxis: {
+                    rangeselector: selectorOptions,
+                    rangeslider: {}
+                },
+                yaxis: {
+                    fixedrange: true
+                }
+            };
+            var dato = {
+                    x: Array.from(this.datos, dato => dato.date),
+                    y: Array.from(this.datos, dato => dato.dato),
+                    type: "scatter",
+                    name: `${this.datos[0].name}`,
+                }
+            Plotly.newPlot(this.$refs.plot, [dato], layout);
+            
+        },
+        async fetchData(url){
+            var limit = 10000
+            this.loading = true;
+            if (!url) url = `datos-pre-procesados/?fila__id=${this.fila}&limit=${limit}&offset=0`;
+            try {
+                var response = await this.getDatosProcesados(url)
+                
+            } catch (error) {
+                console.log("Error", error.response)
+                this.error = true;
+                this.errorMessage = error;
+                return
+            }
+            this.name = response.data.results[0].name
+            urlParams = new URLSearchParams(url)
+            offset = parseInt(urlParams.get("offset"))
+            this.progress = (offset + limit) / response.data.count * 100;
+            this.datos.push(...response.data.results)
+            while (response.data.next != null) {
+                url = response.data.next;
+                try {
+                    response = await this.getDatosProcesados(url);
+                    urlParams = new URLSearchParams(url)
+                    offset = parseInt(urlParams.get("offset"))
+                    this.progress = (offset + limit) / response.data.count * 100;
+                    console.log(response)
+                    this.datos.push(...response.data.results)
+                } catch (error) {
+                    console.log("Error", error.response)
+                    this.error = true;
+                    this.errorMessage = error;
+                    return;
+                }
+            }
+            this.loading = false;
+            this.renderPlot();
+        },
+        async getDatosProcesados(url){
+            return new Promise((resolve, reject) => {
+                instance.get(url)
+                .then(response => {
+                    resolve(response)
+                })
+                .catch(error =>     {
+                    reject(error)
+                })
+            })
+        }
     },
     mounted() {
-        var selectorOptions = {
-            buttons: [{
-                step: 'month',
-                stepmode: 'backward',
-                count: 1,
-                label: '1m'
-            }, {
-                step: 'month',
-                stepmode: 'backward',
-                count: 6,
-                label: '6m'
-            }, {
-                step: 'year',
-                stepmode: 'todate',
-                count: 1,
-                label: 'YTD'
-            }, {
-                step: 'year',
-                stepmode: 'backward',
-                count: 1,
-                label: '1y'
-            }, {
-                step: 'all',
-            }],
-        };
-        var layout = {
-            title: this.name,
-            xaxis: {
-                rangeselector: selectorOptions,
-                rangeslider: {}
-            },
-            yaxis: {
-                fixedrange: true
-            }
-        };
-        console.log(this.data)
-        const data = [this.data]
-        Plotly.newPlot(this.$refs.plot, [this.data], layout);
-    }
+        this.fetchData();
+    },
 }
 
 const app = Vue.createApp({
@@ -77,6 +155,7 @@ const app = Vue.createApp({
                 title: "My graph",
             },
             datos: [],
+            fetchFilas: [],
         }
     },
     computed:{
@@ -90,43 +169,44 @@ const app = Vue.createApp({
     },
     methods:{
         async fetchData(e, url){
-            var limit = 10000
-            this.loading = true
+            this.fetchFilas = this.checkedFilas;
+            this.checkedFilas = [];
+            // this.loading = true
             
-            if (this.datosProcesados.length > 0) this.datosProcesados = [];
-            if (!url) url = `datos-procesados/datos_procesados/?filas=${this.checkedFilas.join(",")}&limit=${limit}&offset=0`;
-            var response = await this.getDatosProcesados(url)
+            // if (this.datosProcesados.length > 0) this.datosProcesados = [];
+            // if (!url) url = `datos-procesados/datos_procesados/?filas=${this.checkedFilas.join(",")}&limit=${limit}&offset=0`;
+            // var response = await this.getDatosProcesados(url)
             
-            urlParams = new URLSearchParams(url)
-            var offset = parseInt(urlParams.get("offset"))
-            var progress = (offset + limit) / response.data.count * 100;
+            // urlParams = new URLSearchParams(url)
+            // var offset = parseInt(urlParams.get("offset"))
+            // var progress = (offset + limit) / response.data.count * 100;
             
-            console.log(response)
-            this.datosProcesados.push(...response.data.results)
-            // var count = response.count;
-            // var hits_to_endpoint = count / limit
-            // var progress = 1 / hits_to_endpoint
-            while (response.data.next != null) {
-                url = response.data.next;
-                try {
-                    response = await this.getDatosProcesados(url);
-                    urlParams = new URLSearchParams(url)
-                    offset = parseInt(urlParams.get("offset"))
-                    progress = (offset + limit) / response.data.count * 100;
-                    console.log(response)
-                    this.datosProcesados.push(...response.data.results)
-                    this.progress = progress;
-                    // progress += 1 / hits_to_endpoint
-                    // this.progress = progress * 100
-                } catch (error) {
-                    console.log("Error", error.response)
-                    break;
-                }
-            }
-            this.progress = 0;
-            this.checkedFilas= [];
-            this.loading = false
-            this.renderDatosProcesados();
+            // console.log(response)
+            // this.datosProcesados.push(...response.data.results)
+            // // var count = response.count;
+            // // var hits_to_endpoint = count / limit
+            // // var progress = 1 / hits_to_endpoint
+            // while (response.data.next != null) {
+            //     url = response.data.next;
+            //     try {
+            //         response = await this.getDatosProcesados(url);
+            //         urlParams = new URLSearchParams(url)
+            //         offset = parseInt(urlParams.get("offset"))
+            //         progress = (offset + limit) / response.data.count * 100;
+            //         console.log(response)
+            //         this.datosProcesados.push(...response.data.results)
+            //         this.progress = progress;
+            //         // progress += 1 / hits_to_endpoint
+            //         // this.progress = progress * 100
+            //     } catch (error) {
+            //         console.log("Error", error.response)
+            //         break;
+            //     }
+            // }
+            // this.progress = 0;
+            // this.checkedFilas= [];
+            // this.loading = false
+            // this.renderDatosProcesados();
         },
         getDatosProcesados(url){
             return new Promise((resolve, reject) => {
