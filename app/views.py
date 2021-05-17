@@ -12,7 +12,7 @@ import json
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import (
-    Dato, DatoSerializer, 
+    ChartDatoProcesadoSerializer, Dato, DatoSerializer, 
     DatoProcesado, DatoProcesadoSerializer,
     Plc, PlcSerializer,
     Fila, FilaSerializer,
@@ -60,18 +60,18 @@ class DatoProcesadoViewset(viewsets.ModelViewSet):
 
     
     @action(detail=False, methods=["get"])
-    def streamed_filter_filas(self, request):
+    def datos_procesados(self, request):
         filas : List[int] = map(int, request.GET.get("filas").split(","))
-        queryset = self.get_queryset().filter(fila_id__in=filas)
-        response = StreamingHttpResponse(
-            self._streamed_filter_filas(queryset),
-            status=200,
-            content_type="application/json"
-        )
-        return response
-
-    def _streamed_filter_filas(self, queryset):
+        queryset = self.get_queryset()\
+            .filter(fila_id__in=filas)\
+            .values("dato", "date", "fila", "name")
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            yield self.get_paginated_response(serializer.data)
+            serializer = ChartDatoProcesadoSerializer(page, many=True)
+            # serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            response = Response(serializer.data)
+
+        return response

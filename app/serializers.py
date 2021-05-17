@@ -1,5 +1,7 @@
+from datetime import date, datetime
+from app.fields import MultiType
 import re
-from typing import OrderedDict
+from typing import OrderedDict, Tuple
 from rest_framework import serializers
 from .models import Dato, DatoProcesado, Fila, Plc, Area
 import json
@@ -76,3 +78,24 @@ class ChartDataSerializer(serializers.Serializer):
     y = serializers.ListSerializer(child=serializers.IntegerField())
     mode = serializers.CharField(max_length=50)
     type = serializers.CharField(max_length=50)
+    fila = serializers.IntegerField()
+
+
+class ChartDatoProcesadoSerializer(serializers.Serializer):
+
+    dato = serializers.SerializerMethodField()
+    date = serializers.DateTimeField()
+    fila = serializers.IntegerField()
+    name = serializers.CharField(max_length=50)
+
+    def get_dato(self, obj):
+        value = obj["dato"].value
+        if isinstance(value, bool):
+            value = 1 if value else 0
+        return value
+
+    # def get_date(self, obj: Tuple[MultiType, datetime, int]):
+    #     return obj[1]
+
+    # def get_fila(self, obj: Tuple[MultiType, datetime, int]):
+    #     return obj[2]

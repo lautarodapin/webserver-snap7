@@ -137,9 +137,9 @@ class DatoProcesadoConsumer(StreamedPaginatedListMixin, GenericAsyncAPIConsumer)
         filters = kwargs.pop("filters", None)
         if filters:
             return queryset.filter(**filters)\
-                .values_list("dato", "date")
+                .values_list("dato", "date", "fila")
         return queryset\
-                .values_list("dato", "date")
+                .values_list("dato", "date", "fila")
         
         
     def get_serializer(self, action_kwargs: Dict = None, *args, **kwargs) -> Serializer:
@@ -152,12 +152,23 @@ class DatoProcesadoConsumer(StreamedPaginatedListMixin, GenericAsyncAPIConsumer)
         kwargs["context"] = self.get_serializer_context(**action_kwargs)
 
         instance: List[DatoProcesado] = kwargs["instance"]
+        datos = list()
+        filas = set([i[2] for i in instance]) # 2 corresponde con "fila"
+        for fila in filas:
+            dato = {
+                "x":map(lambda dato: dato[1], filter(lambda x: x[2] == fila, instance)),
+                "y":map(lambda dato: dato[0].value, filter(lambda x: x[2] == fila, instance)),
+                "mode":"markers",
+                "type":"scatter",
+                "fila": fila,
+            }
+            datos.append(dato)
+            
+        # datos = {
+        #     "x":map(lambda dato: dato[1], instance),
+        #     "y":map(lambda dato: dato[0].value, instance),
+        #     "mode":"markers",
+        #     "type":"scatter",
+        # }
 
-        datos = {
-            "x":map(lambda dato: dato[1], instance),
-            "y":map(lambda dato: dato[0].value, instance),
-            "mode":"markers",
-            "type":"scatter",
-        }
-
-        return serializer_class(instance=datos)
+        return serializer_class(instance=datos, many=True)

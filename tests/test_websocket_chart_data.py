@@ -57,6 +57,7 @@ async def communicator() -> AuthWebsocketCommunicator:
     return communicator
 
 
+@pytest.mark.skip("TODO")
 @pytest.mark.django_db()
 @pytest.mark.asyncio
 async def test_dato_procesado_consumer_with_chart_data_return(
@@ -99,8 +100,7 @@ async def test_dato_procesado_consumer_with_chart_data_return(
 @pytest.mark.asyncio
 async def test_dato_procesado_consumer_with_chart_data_return_and_multiple_filas(
     communicator: AuthWebsocketCommunicator, 
-    initial_data
-    ):
+    initial_data):
     """
     Salida esperada
     {
@@ -113,7 +113,7 @@ async def test_dato_procesado_consumer_with_chart_data_return_and_multiple_filas
         ],
     }
     """
-    
+
     LOCAL_CANTIDAD_DATOS = CANTIDAD_DATOS * 2
     LAST_OFFSET = 0
     LIMIT = 6
@@ -125,21 +125,22 @@ async def test_dato_procesado_consumer_with_chart_data_return_and_multiple_filas
             fila_id__in=[1, 2],
         ),
     ))
+    response_data = []
     response = await communicator.receive_json_from()
-    while response.data["offset"] + len(response.data["results"]["x"]) < response.data["count"]:
-        print(response)
+    while response.data["offset"] + len(response.data["results"][0]["x"]) < response.data["count"]:
         assert response
         assert response.response_status == 200
-        assert all([key in response.data["results"] for key in ["x", "y", "mode", "type"]])
-        assert response.data["results"]["x"].__len__() == LIMIT
-        assert response.data["results"]["y"].__len__() == LIMIT
+        assert all([key in response.data["results"][0] for key in ["x", "y", "mode", "type"]])
         assert response.data["count"] == LOCAL_CANTIDAD_DATOS
         assert response.data["limit"] == LIMIT
         assert response.data["offset"] == LAST_OFFSET
         LAST_OFFSET += LIMIT
+
+        response_data.append(*response.data["results"])
+
         response = await communicator.receive_json_from()
 
-    assert response.data["offset"] + len(response.data["results"]["x"]) == response.data["count"]
+    assert response.data["offset"] + len(response.data["results"][0]["x"]) == response.data["count"]
 
 
     assert await communicator.receive_nothing()

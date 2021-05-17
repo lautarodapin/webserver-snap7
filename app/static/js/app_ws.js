@@ -20,11 +20,7 @@ const app = Vue.createApp({
             areas: [],
             filas: [],
             // datosProcesados: [],
-            data:[{
-                x: [],
-                y: [],
-                type:"scattergl"
-            }],
+            data:{},
             layout:{
                 title: "My graph",
             }

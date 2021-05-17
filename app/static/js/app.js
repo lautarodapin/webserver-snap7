@@ -35,24 +35,34 @@ const app = Vue.createApp({
     },
     methods:{
         async fetchData(e, url){
-            var limit = 50000
+            var limit = 10000
             this.loading = true
+            
             if (this.datosProcesados.length > 0) this.datosProcesados = [];
-            if (!url) url = `datos-procesados/filter_filas/?filas=${this.checkedFilas.join(",")}&limit=${limit}&offset=0`;
+            if (!url) url = `datos-procesados/datos_procesados/?filas=${this.checkedFilas.join(",")}&limit=${limit}&offset=0`;
             var response = await this.getDatosProcesados(url)
+            
+            urlParams = new URLSearchParams(url)
+            var offset = parseInt(urlParams.get("offset"))
+            var progress = (offset + limit) / response.data.count * 100;
+            
             console.log(response)
             this.datosProcesados.push(...response.data.results)
-            var count = response.count;
-            var hits_to_endpoint = count / limit
-            var progress = 1 / hits_to_endpoint
+            // var count = response.count;
+            // var hits_to_endpoint = count / limit
+            // var progress = 1 / hits_to_endpoint
             while (response.data.next != null) {
                 url = response.data.next;
                 try {
                     response = await this.getDatosProcesados(url);
+                    urlParams = new URLSearchParams(url)
+                    offset = parseInt(urlParams.get("offset"))
+                    progress = (offset + limit) / response.data.count * 100;
                     console.log(response)
                     this.datosProcesados.push(...response.data.results)
-                    progress += 1 / hits_to_endpoint
-                    this.progress = progress * 100
+                    this.progress = progress;
+                    // progress += 1 / hits_to_endpoint
+                    // this.progress = progress * 100
                 } catch (error) {
                     console.log("Error", error.response)
                     break;
