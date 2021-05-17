@@ -68,9 +68,10 @@ const app = Vue.createApp({
                     break;
                 }
             }
-            this.renderDatosProcesados();
+            this.progress = 0;
             this.checkedFilas= [];
             this.loading = false
+            this.renderDatosProcesados();
         },
         getDatosProcesados(url){
             return new Promise((resolve, reject) => {

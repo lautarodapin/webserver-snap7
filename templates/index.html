@@ -18,7 +18,6 @@
     <main>
         <div id="app">
             <h1>Graficos</h1>
-            <div ref="plotlyEl" id="plotlyEl"></div>
 
             <input v-model="searchFila">
             <div v-if="filteredFilas.length > 0" v-for="(fila, index) in filteredFilas" :key="index">
@@ -31,6 +30,8 @@
                 <span v-if="loading">[[progress]]</span>
             </button>
             {% comment %} <div v-for="dato in datosProcesados" :key="dato.id">[[dato.id]]</div> {% endcomment %}
+            <div ref="plotlyEl" id="plotlyEl"></div>
+
         </div>
     </main>
     <footer>

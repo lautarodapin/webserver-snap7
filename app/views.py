@@ -64,7 +64,8 @@ class DatoProcesadoViewset(viewsets.ModelViewSet):
         filas : List[int] = map(int, request.GET.get("filas").split(","))
         queryset = self.get_queryset()\
             .filter(fila_id__in=filas)\
-            .values("dato", "date", "fila", "name")
+            .values("dato", "date", "fila", "name")\
+            .order_by("fila")
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ChartDatoProcesadoSerializer(page, many=True)
