@@ -14,7 +14,7 @@ const PlotlyComponent =  {
             {{progress}}
         </span>
         <div ref="plot"></div>
-        <button v-if="error" @click="reload">Reload</button>
+        <button v-if="error || !loading" @click="reload">Reload</button>
     </div>
     `,
     props: ["fila",],
@@ -38,6 +38,7 @@ const PlotlyComponent =  {
             console.log(this.data)
             const data = [this.data]
             Plotly.newPlot(this.$refs.plot, [this.data], layout);
+            this.data = []; // Elimino los datos para que no ocupen espacio en memoria.
         },
         renderPlot(){
             var selectorOptions = {
