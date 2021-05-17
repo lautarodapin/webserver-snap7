@@ -31,10 +31,12 @@
                 Search!
                 <span v-if="loading">[[progress]]</span>
             </button>
-            {% comment %} <div v-for="dato in datosProcesados" :key="dato.id">[[dato.id]]</div> {% endcomment %}
-            <div ref="plotlyEl" id="plotlyEl"></div>
-            <plotly-component :data="[{x: [1,2,3], y:[1,2,3], type:'scatter'}]" />
-
+            <plotly-component 
+                v-if="datos.length > 0"
+                v-for="(dato, index) in datos" 
+                :key="index" 
+                :dato="dato" 
+            />
         </div>
     </main>
     <footer>

@@ -7,15 +7,56 @@ const PlotlyComponent =  {
     name: "plotly-component",
     template: `
     <div>
-        <h1>Test</h1>
-        {{data}}
-        <div ref="plot1"></div>
+        <h1>{{name || 'Test'}}</h1>
+        {{fila}}
+        <div ref="plot"></div>
     </div>
     `,
-    props: ["data",],
+    props: ["dato",],
+    computed:{
+        name() {return this.dato?.data.name;},
+        fila() {return this.dato?.fila;},
+        data() {return this.dato?.data;},
+    },
     mounted() {
+        var selectorOptions = {
+            buttons: [{
+                step: 'month',
+                stepmode: 'backward',
+                count: 1,
+                label: '1m'
+            }, {
+                step: 'month',
+                stepmode: 'backward',
+                count: 6,
+                label: '6m'
+            }, {
+                step: 'year',
+                stepmode: 'todate',
+                count: 1,
+                label: 'YTD'
+            }, {
+                step: 'year',
+                stepmode: 'backward',
+                count: 1,
+                label: '1y'
+            }, {
+                step: 'all',
+            }],
+        };
+        var layout = {
+            title: this.name,
+            xaxis: {
+                rangeselector: selectorOptions,
+                rangeslider: {}
+            },
+            yaxis: {
+                fixedrange: true
+            }
+        };
         console.log(this.data)
-        Plotly.newPlot(this.$refs.plot1, this.data);
+        const data = [this.data]
+        Plotly.newPlot(this.$refs.plot, [this.data], layout);
     }
 }
 
@@ -34,7 +75,8 @@ const app = Vue.createApp({
             datosProcesados: [],
             layout:{
                 title: "My graph",
-            }
+            },
+            datos: [],
         }
     },
     computed:{
@@ -104,34 +146,23 @@ const app = Vue.createApp({
                 .map(dato => dato.fila)
                 .filter((value, index, self) => self.indexOf(value) === index)
             // console.log(filas)
-            var data = []
+            var datos = []
             for(var i = 0; i < filas.length; i++){
                 var datosFiltrados = this.datosProcesados.filter(dato => dato.fila === filas[i])
                 // console.log(datosFiltrados)
-                var trace = {
-                    x: Array.from(datosFiltrados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
-                    y: Array.from(datosFiltrados, dato => dato.dato),
-                    type: "scatter",
-                    name: `${datosFiltrados[0].name}`,
+                var dato = {
+                    data: {
+                        x: Array.from(datosFiltrados, dato => dato.date),//.split("T").join(" ").substring(0, dato.date.length - 1)), // "2020-01-01T00:02:00Z".split("T").join(" ").substring(0, "2020-01-01T00:02:00Z".length-1)
+                        y: Array.from(datosFiltrados, dato => dato.dato),
+                        type: "scatter",
+                        name: `${datosFiltrados[0].name}`,
+                    },
+                    fila: filas[i],
                 }
-                if (i > 0){
-                    trace.xaxis = `x${i + 1}`; 
-                    trace.yaxis = `y${i + 1}`; 
-                }
-                data.push(trace)
-            }
-            var layout = {
-                grid: {
-                    rows: filas.length,
-                    columns: 1,
-                    pattern: 'independent',
-                }
+                datos.push(dato)
             }
             // console.log(data)
-            const el = this.$refs.plotlyEl
-            Plotly.newPlot(el, data, layout)
-            this.data = data;
-            this.layout = layout;
+            this.datos = datos;
         },
         getPlcs(){
             return new Promise((resolve, reject) => {

@@ -78,3 +78,12 @@ class DatoProcesadoViewset(viewsets.ModelViewSet):
             response = Response(serializer.data)
 
         return response
+        
+class DatoPreProcesadoViewset(viewsets.ModelViewSet):
+    queryset = DatoProcesado.objects.all()\
+                .values("dato", "date", "fila", "name")\
+                .order_by("fila")
+    serializer_class = ChartDatoProcesadoSerializer  
+    # lookup_field = "fila_id"
+    filter_backends = [DjangoFilterBackend,]
+    filterset_fields = ['fila__id', 'area__id', "date"]
