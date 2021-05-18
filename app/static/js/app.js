@@ -11,9 +11,12 @@ const PlotlyComponent =  {
         {{fila}}
         {{loading}}
         <span v-if="loading">
-            {{progress}}
+        {{progress}}
         </span>
         <div ref="plot"></div>
+        Si se quiere un rango especifico puede  buscarlo aqui
+        <input type="datetime-local" v-model="dateFilters.fromDate" name="from_date">
+        <input type="datetime-local" v-model="dateFilters.toDate" name="to_date">
         <button v-if="error || !loading" @click="reload">Reload</button>
     </div>
     `,
@@ -25,6 +28,10 @@ const PlotlyComponent =  {
         progress: 0,
         error: false,
         errorMessage: null,
+        dateFilters:{
+            fromDate: "",
+            toDate: "",
+        }
     }},
     computed:{
     },
@@ -32,6 +39,7 @@ const PlotlyComponent =  {
         reload(){
             this.error = false;
             this.errorMessage = null;
+            Plotly.redraw(this.$refs.plot, [])
             this.fetchData();
         },
         plot(){
@@ -83,12 +91,13 @@ const PlotlyComponent =  {
                     name: `${this.datos[0].name}`,
                 }
             Plotly.newPlot(this.$refs.plot, [dato], layout);
+            this.datos = []
             
         },
         async fetchData(url){
             var limit = 10000
             this.loading = true;
-            if (!url) url = `datos-pre-procesados/?fila=${this.fila}&limit=${limit}&offset=0`;
+            if (!url) url = `datos-pre-procesados/?fila=${this.fila}&limit=${limit}&offset=0&from_date=&to_date=`;
             try {
                 var response = await this.getDatosProcesados(url)
                 
@@ -105,11 +114,13 @@ const PlotlyComponent =  {
             this.datos.push(...response.data.results)
             while (response.data.next != null) {
                 url = response.data.next;
+                urlParams = new URLSearchParams(url)
+                offset = parseInt(urlParams.get("offset"))
+                this.progress = (offset + limit) / response.data.count * 100;
+                /* TODO añadir un limite de fetch */
+                // if (offset > 20000) break; // LIMITE DE FETCH
                 try {
                     response = await this.getDatosProcesados(url);
-                    urlParams = new URLSearchParams(url)
-                    offset = parseInt(urlParams.get("offset"))
-                    this.progress = (offset + limit) / response.data.count * 100;
                     console.log(response)
                     this.datos.push(...response.data.results)
                 } catch (error) {
@@ -170,6 +181,7 @@ const app = Vue.createApp({
     },
     methods:{
         async fetchData(e, url){
+            this.fetchFilas = [];
             this.fetchFilas = this.checkedFilas;
             this.checkedFilas = [];
             // this.loading = true
