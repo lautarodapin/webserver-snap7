@@ -88,7 +88,7 @@ const PlotlyComponent =  {
         async fetchData(url){
             var limit = 10000
             this.loading = true;
-            if (!url) url = `datos-pre-procesados/?fila__id=${this.fila}&limit=${limit}&offset=0`;
+            if (!url) url = `datos-pre-procesados/?fila=${this.fila}&limit=${limit}&offset=0`;
             try {
                 var response = await this.getDatosProcesados(url)
                 

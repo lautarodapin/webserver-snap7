@@ -10,6 +10,7 @@ import time
 from django.contrib.auth.models import User
 import json
 from django_filters.rest_framework import DjangoFilterBackend, filters, FilterSet
+from .filters import DatosPreProcesadosFilter
 
 from .serializers import (
     ChartDatoProcesadoSerializer, Dato, DatoSerializer, 
@@ -79,6 +80,7 @@ class DatoProcesadoViewset(viewsets.ModelViewSet):
 
         return response
         
+
 class DatoPreProcesadoViewset(viewsets.ModelViewSet):
     queryset = DatoProcesado.objects.all()\
                 .values("dato", "date", "fila", "name")\
@@ -86,4 +88,5 @@ class DatoPreProcesadoViewset(viewsets.ModelViewSet):
     serializer_class = ChartDatoProcesadoSerializer  
     # lookup_field = "fila_id"
     filter_backends = [DjangoFilterBackend,]
+    filterset_class = DatosPreProcesadosFilter
     filterset_fields = ['fila__id', 'area__id', "date"]
